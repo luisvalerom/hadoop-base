@@ -1,0 +1,137 @@
+version: "2"
+services:
+   namenode:
+      image: apache/hadoop:${TAG}
+      hostname: namenode
+      command: ["hdfs", "namenode"]
+      entrypoint: "/home/hadoop/namenode_entry.sh"
+      container_name: namenode
+      ports:
+        - 9870:9870
+        - 8020:8020
+      env_file:
+        - ./config
+      environment:
+          ENSURE_NAMENODE_DIR: "/data/hadoop"
+          DFS_NAME_DIR: "/data/hadoop"
+      networks:
+        - hadoop_network
+      volumes:
+        - ./dfs_name/:/data/hadoop
+        - ./entrypoint/:/home/hadoop
+
+   datanode1:
+      image: apache/hadoop:${TAG}
+      command: ["hdfs", "datanode"]
+      container_name: datanode1
+      ports:
+        - 9866:9864
+      depends_on:
+        - namenode
+      env_file:
+        - ./config
+      networks:
+        - hadoop_network
+      volumes:
+        - ./dfs_data1/:/data/hadoop
+
+   datanode2:
+      image: apache/hadoop:${TAG}
+      command: ["hdfs", "datanode"]
+      container_name: datanode2
+      ports:
+        - 9868:9864
+      depends_on:
+        - namenode
+      env_file:
+        - ./config      
+      networks:
+        - hadoop_network
+      volumes:
+        - ./dfs_data2/:/data/hadoop
+
+   datanode3:
+      image: apache/hadoop:${TAG}
+      command: ["hdfs", "datanode"]
+      container_name: datanode3
+      ports:
+        - 9869:9864
+      depends_on:
+        - namenode
+      env_file:
+        - ./config      
+      networks:
+        - hadoop_network
+      volumes:
+        - ./dfs_data3/:/data/hadoop
+
+   resourcemanager:
+      image: apache/hadoop:${TAG}
+      hostname: resourcemanager
+      command: ["yarn", "resourcemanager"]
+      container_name: resourcemanager
+      restart: on-failure
+      depends_on:
+        - namenode
+        - datanode1
+        - datanode2
+      ports:
+         - 8088:8088
+      env_file:
+        - ./config
+      volumes:
+        - ./test.sh:/opt/test.sh
+      networks:
+        - hadoop_network
+
+   nodemanager:
+      image: apache/hadoop:${TAG}
+      command: ["yarn", "nodemanager"]
+      container_name: nodemanager
+      depends_on:
+        - namenode
+        - datanode1
+        - datanode2
+      env_file:
+        - ./config
+      ports:
+        - 8042:8042
+      networks:
+        - hadoop_network
+
+   httpfs:
+      image: apache/hadoop:${TAG}
+      command: ["./sbin/httpfs.sh", "run"]
+      container_name: httpfs
+      depends_on:
+        - namenode
+        - datanode1
+        - datanode2
+      env_file:
+        - ./config
+      ports:
+        - 14000:14000
+      networks:
+        - hadoop_network
+
+   timelineserver:
+      image: apache/hadoop:${TAG}
+      container_name: timelineserver
+      command: ["yarn", "timelineserver"]
+      depends_on:
+        - namenode
+        - datanode1
+        - datanode2
+      volumes:
+        - ./timeline/:/data/hadoop
+      env_file:
+        - ./config
+      ports:
+        - 8188:8188
+      networks:
+        - hadoop_network
+
+networks:
+  hadoop_network:
+    name: hadoop_network
+    external: true

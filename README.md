@@ -2,7 +2,7 @@
 
 Esto es solo con intención de aprendizaje, no recomendado para producción.
 
-Basado en las imagenes oficiales de [Apache Hadoop]([https://](https://hub.docker.com/r/apache/hadoop))
+Basado en las imagenes oficiales de [Apache Hadoop](https://hub.docker.com/r/apache/hadoop)
 
 Se sobreescribio el script entryppoint del *namenode* para habilitar la persistencia de los datos en el cluster.
 
